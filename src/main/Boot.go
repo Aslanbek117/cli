@@ -3,7 +3,9 @@ package main
 import (
 	"flag"
 	"log"
+	"net/http"
 	"os"
+	"time"
 )
 type UrlContext struct {
 	ID 	int
@@ -67,5 +69,8 @@ func main() {
 		log.Println("url not explicitly set, terminating...")
 		os.Exit(1)
 	}
+
+	client := http.Client{Timeout: 30 * time.Second}
+
 
 }
