@@ -2,11 +2,13 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 )
 type UrlContext struct {
@@ -82,6 +84,42 @@ func getOccurrences(done <- chan bool, urlsChannel <- chan UrlContext, client ht
 	return urlAndOccurrencesChannel
 
 }
+// merge all channels into one
+// fan-in fan-out
+func merge(done <- chan bool, channels ...<-chan map[string]int) <- chan map[string] int {
+	var wg sync.WaitGroup
+	wg.Add(len(channels))
+
+	faninChan := make(chan map[string]int)
+
+	multiplex := func(someChannel <- chan map[string]int) {
+
+		defer wg.Done()
+
+		for finalAnswer := range someChannel{
+			select {
+			case <-done:
+				return
+			case faninChan <- finalAnswer:
+			}
+
+		}
+	}
+
+	for _, c := range channels {
+		go multiplex(c)
+	}
+
+	go func() {
+
+		wg.Wait()
+
+		close(faninChan)
+	}()
+
+	return faninChan
+
+}
 
 type arrayFlags []string
 
@@ -130,5 +168,10 @@ func main() {
 		workers[i] = getOccurrences(done, urls, client)
 	}
 
+	for n :=range merge(done, workers ...) {
+		fmt.Println(n)
+	}
+
+	fmt.Printf("Took %fs to get occurrences from %d urls\n", time.Since(start).Seconds(), len(cmdArgs))
 
 }
