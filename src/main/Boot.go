@@ -5,6 +5,35 @@ import (
 	"log"
 	"os"
 )
+type UrlContext struct {
+	ID 	int
+	Url string
+}
+
+// at first need to populate a channel
+// this function takes as parameter urls that contains all urls that provided by cli Args and produce them to channel
+func Produce(done <-chan bool, urls[]string) <- chan UrlContext {
+	urlsChannel := make(chan UrlContext)
+	urlContext := make([]UrlContext, len(urls))
+
+	for i :=0; i< len(urls);i++ {
+		urlContext[i] = UrlContext{i, urls[i]}
+	}
+
+	go func() {
+		for _, context := range urlContext {
+			select {
+			case <-done:
+				return
+			case urlsChannel <- context:
+			}
+
+		}
+		close(urlsChannel)
+	}()
+	return urlsChannel
+}
+
 type arrayFlags []string
 
 
