@@ -2,14 +2,37 @@ package main
 
 import (
 	"flag"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 type UrlContext struct {
 	ID 	int
 	Url string
+}
+
+func httpGet(url string, client http.Client) map[string]int {
+	var answer = make(map[string]int)
+	res, err :=client.Get(url)
+
+	if (err !=nil) {
+		log.Fatalln(err)
+	}
+
+	defer res.Body.Close()
+
+	body, err := ioutil.ReadAll(res.Body)
+
+	if nil !=err {
+		log.Fatalln(err)
+	}
+
+	answer[url] = strings.Count(string(body), pattern)
+	return answer
+
 }
 
 // at first need to populate a channel
