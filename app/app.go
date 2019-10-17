@@ -142,18 +142,22 @@ func main() {
 	flag.Var(&cmdArgs, "url", "url")
 	flag.StringVar(&pattern, "pattern", DEFAULT_PATTERN, "search by provided pattern")
 
-	flagset :=make(map[string]bool)
+	flag.Parse()
 
-	flag.Visit(func(f * flag.Flag) { flagset[f.Name] = true})
+
+	flagset := make(map[string]bool)
+	flag.Visit(func(f *flag.Flag) { flagset[f.Name]=true } )
 
 	if !flagset["pattern"] {
-		log.Println("pattern not explicitly set, using default:[", DEFAULT_PATTERN, "]")
+		fmt.Printf("pattern not explicitly set, using default - world\n")
 	}
 
 	if !flagset["url"] {
-		log.Println("url not explicitly set, terminating...")
+		fmt.Printf("url not explicitly set. Terminating...")
 		os.Exit(1)
 	}
+
+
 
 	client := http.Client{Timeout: 30 * time.Second}
 
