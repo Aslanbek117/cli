@@ -68,7 +68,7 @@ func getOccurrences(done <- chan bool, urlsChannel <- chan UrlContext, client ht
 			select {
 			case <- done:
 				return
-			case urlAndOccurrencesChannel <- httpGet(object.Url):
+			case urlAndOccurrencesChannel <- httpGet(object.Url, client):
 			}
 		}
 		close(urlAndOccurrencesChannel)
@@ -112,6 +112,17 @@ func main() {
 	}
 
 	client := http.Client{Timeout: 30 * time.Second}
+
+	done := make(chan bool)
+	defer close(done)
+
+	start := time.Now()
+	urls := Produce(done, cmdArgs)
+
+	workers := make([] <- chan map[string]int, len(cmdArgs))
+	for i :=0; i< len(cmdArgs); i++ {
+		workers[i] = getOccurrences(done, urls, client)
+	}
 
 
 }
