@@ -15,24 +15,30 @@ type UrlContext struct {
 }
 
 func httpGet(url string, client http.Client) map[string]int {
-	var answer = make(map[string]int)
-	res, err :=client.Get(url)
 
-	if (err !=nil) {
+	var answer  = make(map[string]int)
+	res, err := client.Get(url)
+
+	if err != nil {
 		log.Fatalln(err)
+	}
+
+	if res.StatusCode !=200 {
+		answer[url] = -1
+		log.Fatalln("Something wrong with provided URL:[",url, "], statusCode:[", res.StatusCode, "]" )
+		return answer
 	}
 
 	defer res.Body.Close()
 
 	body, err := ioutil.ReadAll(res.Body)
 
-	if nil !=err {
+	if nil != err {
 		log.Fatalln(err)
 	}
 
-	answer[url] = strings.Count(string(body), pattern)
+	answer[url] = strings.Count(string(body),pattern )
 	return answer
-
 }
 
 // at first need to populate a channel
