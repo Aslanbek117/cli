@@ -36,6 +36,24 @@ func Produce(done <-chan bool, urls[]string) <- chan UrlContext {
 	return urlsChannel
 }
 
+//retrieve all values from channel
+//make http Get request by url in channel
+func getOccurrences(done <- chan bool, urlsChannel <- chan UrlContext, client http.Client) <- chan map[string]int {
+	urlAndOccurrencesChannel := make(chan map[string]int)
+	go func() {
+		for object := range urlsChannel {
+			select {
+			case <- done:
+				return
+			case urlAndOccurrencesChannel <- httpGet(object.Url):
+			}
+		}
+		close(urlAndOccurrencesChannel)
+	}()
+	return urlAndOccurrencesChannel
+
+}
+
 type arrayFlags []string
 
 
